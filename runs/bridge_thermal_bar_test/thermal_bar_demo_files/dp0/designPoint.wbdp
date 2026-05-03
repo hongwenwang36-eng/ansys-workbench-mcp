@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Storage>
+  <Project Version="24.2.1.0" />
+  <Addins>
+    <addin-list valType="String">[Ansys.ParameterManager.ParameterManagerAddin, Ansys.HPS.Addin, Ansys.ANSYS.Core.Addin]</addin-list>
+    <Addin Name="Ansys.ParameterManager.ParameterManagerAddin" Version="7.3" />
+    <Addin Name="Ansys.HPS.Addin" Version="25.1.2.0">
+      <is-optional-on-resume valType="Boolean">true</is-optional-on-resume>
+    </Addin>
+    <Addin Name="Ansys.ANSYS.Core.Addin" Version="23.1.2.0" />
+  </Addins>
+  <Containers>
+    <container-map valType="String">{"Scopes": Ansys.ParameterManager.ParameterManagerAddin:scopes, "Setup": Ansys.ANSYS.Core.Addin:ANSYSSetup}</container-map>
+    <static-container-ids valType="String">{"Scopes": Scopes}</static-container-ids>
+    <Container Name="Scopes" Version="1.0">
+      <container-type valType="String">Ansys.ParameterManager.ParameterManagerAddin:scopes</container-type>
+      <static-id valType="String">Scopes</static-id>
+      <storage-scheme-id valType="String">version-1-format</storage-scheme-id>
+      <deleted-sources valType="String">[]</deleted-sources>
+      <last-updated valType="Int64">0</last-updated>
+      <last-modified-by-usage valType="String">{"Extrinsic": 2493, "Input": 2494, "Output": 2493}</last-modified-by-usage>
+      <outputs-generated-by-type valType="String">{}</outputs-generated-by-type>
+      <contains-significant-data valType="Boolean">false</contains-significant-data>
+      <Object Name="/Scopes/GlobalScope:GlobalScope" Version="1.0">
+        <class-type valType="String">GlobalScope</class-type>
+        <object-name valType="String">GlobalScope</object-name>
+        <member-data valType="String">{"DisplayText": "GlobalScope", "_fieldExpressionValidationContext": None, "functionProviders": [], "Parent": None}</member-data>
+      </Object>
+    </Container>
+    <Container Name="Setup" Version="1.0">
+      <container-type valType="String">Ansys.ANSYS.Core.Addin:ANSYSSetup</container-type>
+      <storage-scheme-id valType="String">version-1-format</storage-scheme-id>
+      <deleted-sources valType="String">[]</deleted-sources>
+      <last-updated valType="Int64">2914</last-updated>
+      <last-modified-by-usage valType="String">{"Extrinsic": 2942, "Input": 2880, "Output": 2861}</last-modified-by-usage>
+      <outputs-generated-by-type valType="String">{}</outputs-generated-by-type>
+      <last-update-regen-times valType="String">{"Preferences": 0, "ToolbarExp": 0, "FileTypesContainer": 0, "EngineeringDataGeneratedChartData": 0, "EngineeringDataCurveFit": 0, "EngineeringDataFavoriteItems": 0, "FileContainer": 0, "Messages": 0, "Scopes": 0, "Parameters": 0, "Schematic": 0, "ReportDataContainer": 0, "Graphics": 0, "Units": 0, "HpsContainer": 0, "PyAddinManager": 0, "Setup": 0}</last-update-regen-times>
+      <unique-system-dir valType="String">APDL</unique-system-dir>
+      <contains-significant-data valType="Boolean">true</contains-significant-data>
+      <Object Name="/Setup/MapdlSetup:SetupDataObject" Version="1.0">
+        <class-type valType="String">MapdlSetup</class-type>
+        <object-name valType="String">SetupDataObject</object-name>
+        <member-data valType="String">{"DisplayText": "SetupDataObject", "CommandLineOptions": "", "DatabaseMemory": 1024, "WorkspaceMemory": 2048, "JobName": "file", "License": "", "Graphics": "WIN32", "MPIType": "Undefined", "MachineList": "", "GPUAccelerator": "None", "NumberOfGpusPerMachine": 1, "ReadStartAns": True, "CustomExecutablePath": "", "DownloadDistributedFiles": True, "InputFiles": [$$a6dfc474-a31b-4568-ad81-7437effde4a1], "ReferenceFiles": [], "SetupHash": "d10da2cd-64ee-4175-bde9-f191d3d1bd79"}</member-data>
+      </Object>
+      <Object Name="/Setup/MAPDLCdb:CDBDataObject" Version="1.0">
+        <class-type valType="String">MAPDLCdb</class-type>
+        <object-name valType="String">CDBDataObject</object-name>
+        <member-data valType="String">{"DisplayText": "CDBDataObject", "Guids": [], "Data": None, "AuxiliaryFiles": None, "TransferFile": None}</member-data>
+      </Object>
+      <Object Name="/Setup/MAPDLDatabase:DatabaseDataObject" Version="1.0">
+        <class-type valType="String">MAPDLDatabase</class-type>
+        <object-name valType="String">DatabaseDataObject</object-name>
+        <member-data valType="String">{"DisplayText": "DatabaseDataObject", "Guids": [], "Data": None, "AuxiliaryFiles": None, "TransferFile": None}</member-data>
+      </Object>
+      <Object Name="/Setup/MAPDLSolution:ResultsDataObject" Version="1.0">
+        <class-type valType="String">MAPDLSolution</class-type>
+        <object-name valType="String">ResultsDataObject</object-name>
+        <member-data valType="String">{"DisplayText": "ResultsDataObject", "Guids": [], "Data": None, "AuxiliaryFiles": None, "TransferFile": None}</member-data>
+      </Object>
+      <Object Name="/Setup/MAPDLResults:SolverDataDataObject" Version="1.0">
+        <class-type valType="String">MAPDLResults</class-type>
+        <object-name valType="String">SolverDataDataObject</object-name>
+        <member-data valType="String">{"DisplayText": "SolverDataDataObject", "Guids": [], "Data": None, "AuxiliaryFiles": None}</member-data>
+      </Object>
+      <Object Name="/Setup/MapdlComponentSolveSettings:MapdlComponentSolveSettings" Version="1.0">
+        <class-type valType="String">MapdlComponentSolveSettings</class-type>
+        <object-name valType="String">MapdlComponentSolveSettings</object-name>
+        <member-data valType="String">{"DisplayText": "MapdlComponentSolveSettings", "UpdateOption": "Foreground", "RsmUserString": None, "ConfiguredQueue": {"OptionIcons": None, "OptionLabels": "Local", "Options": "Local", "ReadOnlyOptions": None, "OptionFeatureFlags": None, "OptionFilterFlags": None, "OptionLicenseFlags": None, "Value": "Local"}, "RsmJobName": "Workbench", "EnablePolling": True, "PollingInterval": "120 [s]", "ExecutionMode": "Serial", "NumberOfProcesses": 2, "Cores": 2, "Distributed": False, "HybridParallel": False, "ThreadsPerProcess": 1}</member-data>
+      </Object>
+      <Object Name="/Setup/ExpertProperties:ExpertProperties" Version="1.0">
+        <class-type valType="String">ExpertProperties</class-type>
+        <object-name valType="String">ExpertProperties</object-name>
+        <member-data valType="String">{"DisplayText": "ExpertProperties", "ImportantNote": "These options are visible because a development environment variable is set", "ExpertPropertiesString": "", "EnableDebug": False, "EnableValidation": False, "EnableTesting": False, "EnableErrorReporting": True, "EnableWarningReporting": True, "EnableInfoReporting": False, "EnableFileBasedCommunication": False, "EnableSocketCommunication": False, "EnableFailureCauseReporting": True}</member-data>
+      </Object>
+      <Object Name="/Setup/ExtendedComponentSettingsForRsmDpUpdate:ExtendedComponentSettingsForRsmDpUpdate" Version="1.0">
+        <class-type valType="String">ExtendedComponentSettingsForRsmDpUpdate</class-type>
+        <object-name valType="String">ExtendedComponentSettingsForRsmDpUpdate</object-name>
+        <member-data valType="String">{"DisplayText": "ExtendedComponentSettingsForRsmDpUpdate", "SerialOnly": False, "UseLimitOnNumberOfCores": False, "LimitOnNumberOfCores": 2, "SharedMemoryParallel": False, "DistributedMemoryParallel": True, "HybridParallel": False, "LimitOnNumberOfThreadsPerProcess": 1}</member-data>
+      </Object>
+      <Object Name="/Setup/MapdlInputFile:InputFile" Version="1.0">
+        <class-type valType="String">MapdlInputFile</class-type>
+        <object-name valType="String">InputFile</object-name>
+        <member-data valType="String">{"DisplayText": "InputFile", "Parameters": [], "FileName": "thermal_bar.dat"}</member-data>
+      </Object>
+    </Container>
+  </Containers>
+</Storage>

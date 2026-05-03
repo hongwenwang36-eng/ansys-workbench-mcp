@@ -1,0 +1,10 @@
+{
+  "datetime": "2026-05-03 10:02:10", 
+  "status": "stopped", 
+  "pid": 18008, 
+  "mcp_home": "D:\\ansys-workbench-mcp", 
+  "version": "0.2.0", 
+  "message": "Polling stopped", 
+  "commands_processed": 6, 
+  "timestamp": 1777773730.5699615
+}

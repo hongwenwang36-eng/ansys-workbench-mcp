@@ -1,0 +1,25 @@
+# encoding: utf-8
+# 2025 R1
+SetScriptVersion(Version="25.1.122")
+ClearMessages()
+template1 = GetTemplate(
+    TemplateName="Steady-State Thermal",
+    Solver="ANSYS")
+system1 = template1.CreateSystem()
+Save(Overwrite=True)
+Extensions.UnloadExtension(
+    Id="5e7e01a6-8601-11e8-9f8c-28f10e13ffe6",
+    Version="2025.1",
+    Format="Binary")
+Extensions.UnloadExtension(
+    Id="5f463412-bd3e-484b-87e7-cbc0a665e474",
+    Version="2025.1",
+    Format="Binary")
+Extensions.UnloadExtension(
+    Id="20180725-3f81-49eb-9f31-41364844c769",
+    Version="2025.1",
+    Format="Binary")
+Extensions.UnloadExtension(
+    Id="f3e3da52-fb02-4910-8cc9-980efd047bc6",
+    Version="2023.1",
+    Format="Binary")

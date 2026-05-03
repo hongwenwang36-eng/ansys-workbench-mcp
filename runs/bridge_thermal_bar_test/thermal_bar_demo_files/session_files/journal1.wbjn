@@ -1,0 +1,11 @@
+# encoding: utf-8
+# 2025 R1
+SetScriptVersion(Version="25.1.122")
+ClearMessages()
+template1 = GetTemplate(TemplateName="Mechanical APDL")
+system1 = template1.CreateSystem()
+setup1 = system1.GetContainer(ComponentName="Setup")
+mapdlInputFile1 = setup1.AddInputFile(FilePath="D:/ansys-workbench-mcp/runs/bridge_thermal_bar_test/thermal_bar.dat")
+Save(Overwrite=True)
+Update()
+Save(Overwrite=True)

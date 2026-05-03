@@ -1,0 +1,10 @@
+/batch,nolist
+/input, 'thermal_bar.dat'
+/input, 'write_verify_update.inp'
+! use trailing underscore to hide parameter
+! check interactive state
+*get,ANSINTER_,active,,int
+*if,ANSINTER_,eq,0,then
+fini
+/exit,nosa
+*endif

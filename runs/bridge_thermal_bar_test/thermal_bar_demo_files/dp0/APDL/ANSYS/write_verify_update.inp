@@ -1,0 +1,12 @@
+! use trailing underscore to hide parameter
+! check interactive state
+*get,ANSINTER_,active,,int
+*if,ANSINTER_,eq,0,then
+!
+! Write simple file to verify the run made it this far
+!
+/OUTPUT,'verify_update.out'
+*vwrite
+('Update of ANSYS system successful...')
+/OUTPUT
+*endif

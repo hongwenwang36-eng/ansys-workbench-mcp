@@ -1,0 +1,419 @@
+
+ Ansys Mechanical Enterprise                       
+
+
+ *------------------------------------------------------------------*
+ |                                                                  |
+ |   W E L C O M E   T O   T H E   A N S Y S (R)  P R O G R A M     |
+ |                                                                  |
+ *------------------------------------------------------------------*
+
+
+
+
+ ***************************************************************
+ *         ANSYS MAPDL 2025 R1          LEGAL NOTICES          *
+ ***************************************************************
+ *                                                             *
+ * Copyright 1971-2025 Ansys, Inc.  All rights reserved.       *
+ * Unauthorized use, distribution or duplication is            *
+ * prohibited.                                                 *
+ *                                                             *
+ * Ansys is a registered trademark of Ansys, Inc. or its       *
+ * subsidiaries in the United States or other countries.       *
+ * See the Ansys, Inc. online documentation or the Ansys, Inc. *
+ * documentation CD or online help for the complete Legal      *
+ * Notice.                                                     *
+ *                                                             *
+ ***************************************************************
+ *                                                             *
+ * THIS ANSYS SOFTWARE PRODUCT AND PROGRAM DOCUMENTATION       *
+ * INCLUDE TRADE SECRETS AND CONFIDENTIAL AND PROPRIETARY      *
+ * PRODUCTS OF ANSYS, INC., ITS SUBSIDIARIES, OR LICENSORS.    *
+ * The software products and documentation are furnished by    *
+ * Ansys, Inc. or its subsidiaries under a software license    *
+ * agreement that contains provisions concerning               *
+ * non-disclosure, copying, length and nature of use,          *
+ * compliance with exporting laws, warranties, disclaimers,    *
+ * limitations of liability, and remedies, and other           *
+ * provisions.  The software products and documentation may be *
+ * used, disclosed, transferred, or copied only in accordance  *
+ * with the terms and conditions of that software license      *
+ * agreement.                                                  *
+ *                                                             *
+ * Ansys, Inc. is a UL registered                              *
+ * ISO 9001:2015 company.                                      *
+ *                                                             *
+ ***************************************************************
+ *                                                             *
+ * This product is subject to U.S. laws governing export and   *
+ * re-export.                                                  *
+ *                                                             *
+ * For U.S. Government users, except as specifically granted   *
+ * by the Ansys, Inc. software license agreement, the use,     *
+ * duplication, or disclosure by the United States Government  *
+ * is subject to restrictions stated in the Ansys, Inc.        *
+ * software license agreement and FAR 12.212 (for non-DOD      *
+ * licenses).                                                  *
+ *                                                             *
+ ***************************************************************
+
+ 2025 R1 
+     
+ Point Releases and Patches installed:   
+     
+ Ansys, Inc. License Manager 2025 R1 
+ Viewer 2025 R1  
+ Discovery (full install) 2025 R1
+ Core WB Files 2025 R1   
+ Ansys Dynamic Reporting 2025 R1 
+ BladeModeler 2025 R1
+ CFD-Post only 2025 R1   
+ CFX (includes CFD-Post) 2025 R1 
+ Chemkin 2025 R1 
+ EnSight 2025 R1 
+ FENSAP-ICE 2025 R1  
+ Fluent (includes CFD-Post) 2025 R1  
+ Polyflow (includes CFD-Post) 2025 R1
+ Forte (includes EnSight) 2025 R1
+ ICEM CFD 2025 R1
+ Rocky 2025 R1   
+ TurboGrid 2025 R1   
+ optiSLang 2025 R1   
+ Remote Solve Manager Standalone Services 2025 R1
+ Autodyn 2025 R1 
+ Customization Files for User Programmable Features 2025 R1  
+ LS-DYNA 2025 R1 
+ Material Calibration App 2025 R1
+ Material Designer 2025 R1   
+ Mechanical Products 2025 R1 
+ Motion 2025 R1  
+ Sherlock 2025 R1
+ ACIS Geometry Interface 2025 R1 
+ AutoCAD Geometry Interface 2025 R1  
+ Catia, Version 4 Geometry Interface 2025 R1 
+ Catia, Version 5 Geometry Interface 2025 R1 
+ Catia, Version 6 Geometry Interface 2025 R1 
+ Creo Elements/Direct Modeling Geometry Interface 2025 R1
+ Creo Parametric Geometry Interface 2025 R1  
+ Inventor Geometry Interface 2025 R1 
+ JTOpen Geometry Interface 2025 R1   
+ NX Geometry Interface 2025 R1   
+ Parasolid Geometry Interface  2025 R1   
+ Solid Edge Geometry Interface 2025 R1   
+ SOLIDWORKS Geometry Interface 2025 R1   
+
+
+          *****  MAPDL COMMAND LINE ARGUMENTS  *****
+  INITIAL JOBNAME              = file                                                                                                                                                                                                                                                    
+  BATCH MODE REQUESTED (-b)    = NOLIST
+  INPUT FILE COPY MODE (-c)    = COPY
+  SHARED MEMORY PARALLEL REQUESTED
+    SINGLE PROCESS WITH   2 THREADS REQUESTED
+    TOTAL OF     2 CORES REQUESTED
+  INPUT FILE NAME              = D:\ansys-workbench-mcp\runs\bridge_thermal_bar_test\thermal_bar_demo_files\dp0\APDL\ANSYS\workbench_main.inp
+  OUTPUT FILE NAME             = D:\ansys-workbench-mcp\runs\bridge_thermal_bar_test\thermal_bar_demo_files\dp0\APDL\ANSYS\workbench_main.out
+  MEMORY REQUESTED (MB)        = 2048        
+  START-UP FILE MODE           = READ  
+  STOP FILE MODE               = READ  
+  DATABASE SIZE REQUESTED (MB) = 1024        
+
+ RELEASE= 2025 R1              BUILD= 25.1      UP20241202   VERSION=WINDOWS x64 
+ CURRENT JOBNAME=file  10:01:52  MAY 03, 2026 CP=      0.078
+
+
+ RUN SETUP PROCEDURE FROM FILE= D:\Program Files\ANSYS Inc\v251\ANSYS\apdl\start.ans
+
+ /INPUT FILE= D:\Program Files\ANSYS Inc\v251\ANSYS\apdl\start.ans  LINE=       0
+
+ /INPUT FILE= thermal_bar.dat  LINE=       0
+
+ TITLE= 
+ Workbench MCP thermal bar demo                                                
+
+
+ *** MAPDL - ENGINEERING ANALYSIS SYSTEM  RELEASE 2025 R1          25.1     ***
+ Ansys Mechanical Enterprise                       
+ 20120530  VERSION=WINDOWS x64   10:01:52  MAY 03, 2026 CP=      0.203
+
+ Workbench MCP thermal bar demo                                                
+
+
+
+          ***** MAPDL ANALYSIS DEFINITION (PREP7) *****
+
+ ELEMENT TYPE          1 IS SOLID70      3-D THERMAL SOLID           
+  KEYOPT( 1- 6)=        0      0      0        0      0      0
+  KEYOPT( 7-12)=        0      0      0        0      0      0
+  KEYOPT(13-18)=        0      0      0        0      0      0
+
+ CURRENT NODAL DOF SET IS  TEMP
+  THREE-DIMENSIONAL MODEL
+
+ MATERIAL          1     KXX  =   45.00000      
+
+ CREATE A HEXAHEDRAL VOLUME WITH
+ X-DISTANCES FROM      0.000000000     TO     0.1000000000    
+ Y-DISTANCES FROM      0.000000000     TO     0.2000000000E-01
+ Z-DISTANCES FROM      0.000000000     TO     0.2000000000E-01
+
+      OUTPUT VOLUME =     1
+
+ DEFAULT ELEMENT DIVISIONS PER LINE BASED ON ELEMENT SIZE =  0.500E-02
+
+ GENERATE NODES AND ELEMENTS   IN  ALL  SELECTED VOLUMES  
+
+ NUMBER OF VOLUMES MESHED   =         1
+ MAXIMUM NODE NUMBER        =       525
+ MAXIMUM ELEMENT NUMBER     =       320
+
+
+ ***** ROUTINE COMPLETED *****  CP =         0.203
+
+
+
+ *****  MAPDL SOLUTION ROUTINE  *****
+
+
+ PERFORM A STATIC ANALYSIS
+  THIS WILL BE A NEW ANALYSIS
+
+ SELECT       FOR ITEM=LOC  COMPONENT=X     BETWEEN  0.0000     AND   0.0000    
+   KABS=  0.  TOLERANCE= 0.100000E-05
+
+         25  NODES (OF        525  DEFINED) SELECTED BY  NSEL  COMMAND.
+
+ SPECIFIED CONSTRAINT TEMP FOR SELECTED NODES            1 TO         525 BY           1
+ REAL=  100.000000       IMAG=  0.00000000    
+
+ SELECT       FOR ITEM=LOC  COMPONENT=X     BETWEEN 0.10000     AND  0.10000    
+   KABS=  0.  TOLERANCE= 0.500000E-03
+
+         25  NODES (OF        525  DEFINED) SELECTED BY  NSEL  COMMAND.
+
+ SPECIFIED CONSTRAINT TEMP FOR SELECTED NODES            1 TO         525 BY           1
+ REAL=  20.0000000       IMAG=  0.00000000    
+
+ SELECT ALL ENTITIES OF TYPE= ALL  AND BELOW
+
+ *****  MAPDL SOLVE    COMMAND  *****
+
+ *** MAPDL - ENGINEERING ANALYSIS SYSTEM  RELEASE 2025 R1          25.1     ***
+ Ansys Mechanical Enterprise                       
+ 20120530  VERSION=WINDOWS x64   10:01:52  MAY 03, 2026 CP=      0.203
+
+ Workbench MCP thermal bar demo                                                
+
+
+
+                       S O L U T I O N   O P T I O N S
+
+   PROBLEM DIMENSIONALITY. . . . . . . . . . . . .3-D                  
+   DEGREES OF FREEDOM. . . . . . TEMP
+   ANALYSIS TYPE . . . . . . . . . . . . . . . . .STATIC (STEADY-STATE)
+   GLOBALLY ASSEMBLED MATRIX . . . . . . . . . . .SYMMETRIC  
+
+ *** NOTE ***                            CP =       0.203   TIME= 10:01:52
+ Present time 0 is less than or equal to the previous time.  Time will   
+ default to 1.                                                           
+
+ *** NOTE ***                            CP =       0.203   TIME= 10:01:52
+ The conditions for direct assembly have been met.  No .emat or .erot    
+ files will be produced.                                                 
+
+                      L O A D   S T E P   O P T I O N S
+
+   LOAD STEP NUMBER. . . . . . . . . . . . . . . .     1
+   TIME AT END OF THE LOAD STEP. . . . . . . . . .  1.0000    
+   NUMBER OF SUBSTEPS. . . . . . . . . . . . . . .     1
+   STEP CHANGE BOUNDARY CONDITIONS . . . . . . . .    NO
+   PRINT OUTPUT CONTROLS . . . . . . . . . . . . .NO PRINTOUT
+   DATABASE OUTPUT CONTROLS. . . . . . . . . . . .ALL DATA WRITTEN
+                                                  FOR THE LAST SUBSTEP
+
+
+ SOLUTION MONITORING INFO IS WRITTEN TO FILE= file.mntr                                                                                                                                                                                                                                                           
+
+
+ Range of element maximum matrix coefficients in global coordinates
+ Maximum = 7.5E-02 at element 298.                                       
+ Minimum = 7.5E-02 at element 201.                                       
+
+   *** ELEMENT MATRIX FORMULATION TIMES
+     TYPE    NUMBER   ENAME      TOTAL CP  AVE CP
+
+        1       320  SOLID70       0.000   0.000000
+ Time at end of element matrix formulation CP = 0.21875.                 
+
+ SPARSE MATRIX DIRECT SOLVER.
+  Number of equations =         475,    Maximum wavefront =     18
+
+
+  Memory allocated on this process
+  -------------------------------------------------------------------
+  Equation solver memory allocated                     =     0.570 MB
+  Equation solver memory required for in-core mode     =     0.549 MB
+  Equation solver memory required for out-of-core mode =     0.361 MB
+  Total (solver and non-solver) memory allocated       =   343.781 MB
+
+ *** NOTE ***                            CP =       0.234   TIME= 10:01:52
+ The Sparse Matrix Solver is currently running in the in-core memory     
+ mode.  This memory mode uses the most amount of memory in order to      
+ avoid using the hard drive as much as possible, which most often        
+ results in the fastest solution time.  This mode is recommended if      
+ enough physical memory is present to accommodate all of the solver      
+ data.                                                                   
+ Sparse solver maximum pivot= 0.6 at node 512 TEMP.                      
+ Sparse solver minimum pivot= 0.117956078 at node 141 TEMP.              
+ Sparse solver minimum pivot in absolute value= 0.117956078 at node 141  
+ TEMP.                                                                   
+
+   *** ELEMENT RESULT CALCULATION TIMES
+     TYPE    NUMBER   ENAME      TOTAL CP  AVE CP
+
+        1       320  SOLID70       0.000   0.000000
+
+   *** NODAL LOAD CALCULATION TIMES
+     TYPE    NUMBER   ENAME      TOTAL CP  AVE CP
+
+        1       320  SOLID70       0.000   0.000000
+ *** LOAD STEP     1   SUBSTEP     1  COMPLETED.    CUM ITER =      1
+ *** TIME =   1.00000         TIME INC =   1.00000      NEW TRIANG MATRIX
+
+
+ *** MAPDL BINARY FILE STATISTICS
+  BUFFER SIZE USED= 16384
+        0.125 MB WRITTEN ON ASSEMBLED MATRIX FILE: file.full
+        0.500 MB WRITTEN ON RESULTS FILE: file.rth
+
+ FINISH SOLUTION PROCESSING
+
+
+ ***** ROUTINE COMPLETED *****  CP =         0.250
+
+
+
+ *** MAPDL - ENGINEERING ANALYSIS SYSTEM  RELEASE 2025 R1          25.1     ***
+ Ansys Mechanical Enterprise                       
+ 20120530  VERSION=WINDOWS x64   10:01:52  MAY 03, 2026 CP=      0.250
+
+ Workbench MCP thermal bar demo                                                
+
+
+
+          ***** MAPDL RESULTS INTERPRETATION (POST1) *****
+
+ *** NOTE ***                            CP =       0.250   TIME= 10:01:52
+ Reading results into the database (SET command) will update the current 
+ displacement and force boundary conditions in the database with the     
+ values from the results file for that load set.  Note that any          
+ subsequent solutions will use these values unless action is taken to    
+ either SAVE the current values or not overwrite them (/EXIT,NOSAVE).    
+
+
+ USE LAST SUBSTEP ON RESULT FILE  FOR LOAD CASE 0 
+
+ SET COMMAND GOT LOAD STEP=     1  SUBSTEP=     1  CUMULATIVE ITERATION=     1
+   TIME/FREQUENCY=  1.0000    
+ TITLE= Workbench MCP thermal bar demo                                          
+
+ SELECT ALL ENTITIES OF TYPE= ALL  AND BELOW
+
+ /OUTPUT FILE= D:/ansys-workbench-mcp/runs/bridge_thermal_bar_test/thermal_nodal_temperatures.txt
+
+ EXIT THE MAPDL POST1 DATABASE PROCESSOR
+
+
+ ***** ROUTINE COMPLETED *****  CP =         0.250
+
+
+
+ /INPUT FILE= write_verify_update.inp  LINE=       0
+
+ *GET  ANSINTER_  FROM  ACTI  ITEM=INT        VALUE=  0.00000000    
+
+ *IF  ANSINTER_  ( =   0.00000     )  EQ  
+      0  ( =   0.00000     )  THEN    
+
+ /OUTPUT FILE= verify_update.out
+
+ *ENDIF
+
+ *GET  ANSINTER_  FROM  ACTI  ITEM=INT        VALUE=  0.00000000    
+
+ *IF  ANSINTER_  ( =   0.00000     )  EQ  
+      0  ( =   0.00000     )  THEN    
+
+ EXIT MAPDL WITHOUT SAVING DATABASE
+
+
+ NUMBER OF WARNING MESSAGES ENCOUNTERED=          0
+ NUMBER OF ERROR   MESSAGES ENCOUNTERED=          0
+
++--------------------- M A P D L   S T A T I S T I C S ------------------------+
+
+Release: 2025 R1            Build: 25.1       Update: UP20241202   Platform: WINDOWS x64 
+Date Run: 05/03/2026   Time: 10:01     Process ID: 13868
+Operating System: Windows 11  (Build: 26200)
+
+Processor Model: Intel(R) Core(TM) 5 220H
+
+Compiler: Intel(R) Fortran Compiler Classic Version 2021.9  (Build: 20230302)
+          Intel(R) C/C++ Compiler Classic Version 2021.9  (Build: 20230302)
+          Intel(R) oneAPI Math Kernel Library Version 2023.1-Product Build 20230303
+
+Number of machines requested            :    1
+Total number of cores available         :   16
+Number of physical cores available      :   12
+Number of processes requested           :    1
+Number of threads per process requested :    2
+Total number of cores requested         :    2 (Shared Memory Parallel)                    
+
+GPU Acceleration: Not Requested
+
+Job Name: file
+Input File: workbench_main.inp
+Working Directory: D:\ansys-workbench-mcp\runs\bridge_thermal_bar_test\thermal_bar_demo_files\dp0\APDL\ANSYS
+
+Total CPU time for main thread                    :        0.5 seconds
+Total CPU time summed for all threads             :        0.2 seconds
+
+Elapsed time spent obtaining a license            :        0.7 seconds
+Elapsed time spent pre-processing model (/PREP7)  :        0.0 seconds
+Elapsed time spent solution - preprocessing       :        0.0 seconds
+Elapsed time spent computing solution             :        0.0 seconds
+Elapsed time spent solution - postprocessing      :        0.0 seconds
+Elapsed time spent post-processing model (/POST1) :        0.0 seconds
+ 
+Equation solver used                              :            Sparse (symmetric)
+
+Sum of disk space used on all processes           :        0.6 MB
+
+Sum of memory used on all processes               :       42.0 MB
+Sum of memory allocated on all processes          :     2048.0 MB
+Physical memory available                         :         24 GB
+Total amount of I/O written to disk               :        0.0 GB
+Total amount of I/O read from disk                :        0.0 GB
+
++------------------ E N D   M A P D L   S T A T I S T I C S -------------------+
+
+
+ *-----------------------------------------------------------------------------*
+ |                                                                             |
+ |                               RUN COMPLETED                                 |
+ |                                                                             |
+ |-----------------------------------------------------------------------------|
+ |                                                                             |
+ |  Ansys MAPDL 2025 R1         Build 25.1         UP20241202    WINDOWS x64   |
+ |                                                                             |
+ |-----------------------------------------------------------------------------|
+ |                                                                             |
+ |  Database Requested(-db)  1024 MB     Scratch Memory Requested       768 MB |
+ |  Maximum Database Used       2 MB     Maximum Scratch Memory Used     40 MB |
+ |                                                                             |
+ |-----------------------------------------------------------------------------|
+ |                                                                             |
+ |        CP Time      (sec) =          0.250       Time  =  10:01:53          |
+ |        Elapsed Time (sec) =          2.000       Date  =  05/03/2026        |
+ |                                                                             |
+ *-----------------------------------------------------------------------------*

@@ -1,0 +1,9 @@
+# encoding: utf-8
+# 2025 R1
+SetScriptVersion(Version="25.1.122")
+ClearMessages()
+template1 = GetTemplate(
+    TemplateName="Steady-State Thermal",
+    Solver="ANSYS")
+system1 = template1.CreateSystem()
+Save(Overwrite=True)

@@ -1,0 +1,26 @@
+/TITLE,Workbench MCP thermal bar demo
+/PREP7
+ET,1,SOLID70
+MP,KXX,1,45
+BLOCK,0,0.1,0,0.02,0,0.02
+ESIZE,0.005
+VMESH,ALL
+FINISH
+
+/SOLU
+ANTYPE,STATIC
+NSEL,S,LOC,X,0
+D,ALL,TEMP,100
+NSEL,S,LOC,X,0.1
+D,ALL,TEMP,20
+ALLSEL,ALL
+SOLVE
+FINISH
+
+/POST1
+SET,LAST
+ALLSEL,ALL
+/OUTPUT,'D:/ansys-workbench-mcp/runs/bridge_thermal_bar_test/thermal_nodal_temperatures',txt
+PRNSOL,TEMP
+/OUTPUT
+FINISH

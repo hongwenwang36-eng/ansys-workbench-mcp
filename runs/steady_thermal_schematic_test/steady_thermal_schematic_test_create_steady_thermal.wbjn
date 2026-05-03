@@ -1,0 +1,29 @@
+# encoding: utf-8
+import traceback
+
+log = open('D:\\ansys-workbench-mcp\\runs\\steady_thermal_schematic_test\\steady_thermal_schematic_test_create_steady_thermal.log', "w")
+
+def w(message):
+    log.write(str(message) + "\n")
+    log.flush()
+
+try:
+    Reset()
+    ClearMessages()
+    template = GetTemplate(TemplateName="Steady-State Thermal", Solver="ANSYS")
+    system = template.CreateSystem()
+    model = system.GetContainer(ComponentName="Model")
+    Save(FilePath='D:\\ansys-workbench-mcp\\runs\\steady_thermal_schematic_test\\steady_thermal_schematic_test.wbpj', Overwrite=True)
+    w("Project saved: " + 'D:\\ansys-workbench-mcp\\runs\\steady_thermal_schematic_test\\steady_thermal_schematic_test.wbpj')
+    for message in GetMessages():
+        try:
+            w("%s: %s" % (message.MessageType, message.Summary))
+        except:
+            w(str(message))
+    w("ANSYS_WORKBENCH_MCP_DONE")
+except Exception:
+    w("ERROR")
+    w(traceback.format_exc())
+    raise
+finally:
+    log.close()
