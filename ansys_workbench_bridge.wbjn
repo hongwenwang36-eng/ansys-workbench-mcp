@@ -1,0 +1,536 @@
+# encoding: utf-8
+"""Ansys Workbench side of the ansys-workbench-mcp file IPC bridge."""
+
+import io
+import json
+import os
+import sys
+import time
+import traceback
+import uuid
+from datetime import datetime
+
+__version__ = "0.2.0"
+
+
+def _resolve_mcp_home():
+    env_home = os.environ.get("ANSYS_WORKBENCH_MCP_HOME", "").strip()
+    if env_home:
+        return os.path.abspath(os.path.expanduser(env_home))
+    try:
+        this_file = os.path.abspath(__file__)
+        script_dir = os.path.dirname(this_file)
+        if os.path.exists(os.path.join(script_dir, "mcp_server.py")):
+            return script_dir
+    except Exception:
+        pass
+    return os.path.join(os.path.expanduser("~"), ".ansys-workbench-mcp")
+
+
+MCP_HOME = _resolve_mcp_home()
+COMMANDS_DIR = os.path.join(MCP_HOME, "commands")
+RESULTS_DIR = os.path.join(MCP_HOME, "results")
+SCRIPTS_DIR = os.path.join(MCP_HOME, "scripts")
+RUNS_DIR = os.path.join(MCP_HOME, "runs")
+STATUS_FILE = os.path.join(MCP_HOME, "status.json")
+STOP_FILE = os.path.join(MCP_HOME, "stop.flag")
+LOG_FILE = os.path.join(MCP_HOME, "mcp.log")
+
+STALE_COMMAND_AGE = 120.0
+_mcp_running = False
+_mcp_commands_processed = 0
+_mcp_start_time = None
+_script_output_lines = []
+
+
+def ensure_dirs():
+    for path in [COMMANDS_DIR, RESULTS_DIR, SCRIPTS_DIR, RUNS_DIR]:
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+
+def _log(level, message):
+    try:
+        line = "[%s] %s: %s\n" % (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), level, message)
+        with io.open(LOG_FILE, "a", encoding="utf-8") as f:
+            f.write(line)
+    except Exception:
+        pass
+
+
+def _write_json(path, data):
+    tmp = path + ".tmp"
+    with io.open(tmp, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+    try:
+        os.replace(tmp, path)
+    except Exception:
+        with io.open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+        try:
+            os.remove(tmp)
+        except Exception:
+            pass
+
+
+def _read_json(path):
+    with io.open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def write_status(status, message=""):
+    payload = {
+        "status": status,
+        "message": message,
+        "version": __version__,
+        "timestamp": time.time(),
+        "datetime": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "pid": os.getpid(),
+        "mcp_home": MCP_HOME,
+        "commands_processed": _mcp_commands_processed,
+    }
+    try:
+        _write_json(STATUS_FILE, payload)
+    except Exception:
+        pass
+
+
+def _cleanup_stale_commands():
+    now = time.time()
+    try:
+        for name in os.listdir(COMMANDS_DIR):
+            if not name.endswith(".json"):
+                continue
+            path = os.path.join(COMMANDS_DIR, name)
+            try:
+                if now - os.path.getmtime(path) > STALE_COMMAND_AGE:
+                    os.remove(path)
+                    _log("WARN", "Removed stale command: " + name)
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+
+def _stringify(value):
+    try:
+        if value is None:
+            return ""
+        try:
+            return value.ToString()
+        except Exception:
+            pass
+        return str(value)
+    except Exception:
+        return "<unprintable>"
+
+
+def _safe_attr(obj, name):
+    try:
+        return getattr(obj, name)
+    except Exception:
+        return None
+
+
+def _mcp_print(*args):
+    global _script_output_lines
+    _script_output_lines.append(" ".join(_stringify(x) for x in args))
+
+
+class _CaptureWriter(object):
+    def write(self, value):
+        global _script_output_lines
+        text = _stringify(value)
+        if text and text != "\n":
+            _script_output_lines.append(text.rstrip("\n"))
+
+    def flush(self):
+        pass
+
+
+def execute_script(script_content, command_id):
+    global _script_output_lines
+    result = {"id": command_id, "success": False, "output": "", "error": None, "timestamp": time.time()}
+    script_path = os.path.join(SCRIPTS_DIR, "script_" + command_id + ".wbjn")
+    try:
+        with io.open(script_path, "w", encoding="utf-8") as f:
+            f.write(script_content)
+    except Exception as e:
+        result["error"] = str(e)
+        return result
+
+    _script_output_lines = []
+    exec_globals = dict(globals())
+    exec_globals["__name__"] = "__main__"
+    exec_globals["__file__"] = script_path
+    exec_globals["print"] = _mcp_print
+
+    old_stdout = sys.stdout
+    old_stderr = sys.stderr
+    writer = _CaptureWriter()
+    try:
+        sys.stdout = writer
+        sys.stderr = writer
+        with io.open(script_path, "r", encoding="utf-8") as f:
+            code = f.read()
+        exec(compile(code, script_path, "exec"), exec_globals)
+        result["success"] = True
+        result["output"] = "\n".join(_script_output_lines)
+    except Exception as e:
+        result["error"] = str(e)
+        result["traceback"] = traceback.format_exc()
+    try:
+        sys.stdout = old_stdout
+        sys.stderr = old_stderr
+    except Exception:
+        pass
+
+    try:
+        os.remove(script_path)
+    except Exception:
+        pass
+    return result
+
+
+def get_project_info():
+    info = {
+        "mcp_home": MCP_HOME,
+        "systems": [],
+        "messages": [],
+    }
+    try:
+        systems = GetAllSystems()
+        for index, system in enumerate(systems):
+            system_info = {
+                "index": index,
+                "name": _stringify(_safe_attr(system, "Name")),
+                "display_text": _stringify(_safe_attr(system, "DisplayText")),
+                "components": [],
+            }
+            for component_name in ["Engineering Data", "Geometry", "Model", "Setup", "Solution", "Results"]:
+                try:
+                    component = system.GetComponent(Name=component_name)
+                    system_info["components"].append({
+                        "name": component_name,
+                        "exists": True,
+                        "display_text": _stringify(_safe_attr(component, "DisplayText")),
+                    })
+                except Exception:
+                    pass
+            info["systems"].append(system_info)
+    except Exception as e:
+        info["systems_error"] = str(e)
+
+    try:
+        for message in GetMessages():
+            try:
+                info["messages"].append({
+                    "type": _stringify(message.MessageType),
+                    "summary": _stringify(message.Summary),
+                })
+            except Exception:
+                info["messages"].append(_stringify(message))
+    except Exception:
+        pass
+    return info
+
+
+def open_project(project_file):
+    project_file = os.path.abspath(os.path.expanduser(project_file))
+    Open(FilePath=project_file)
+    return {"project_file": project_file, "project_info": get_project_info()}
+
+
+def save_project(project_file="", overwrite=True):
+    if project_file:
+        project_file = os.path.abspath(os.path.expanduser(project_file))
+        Save(FilePath=project_file, Overwrite=bool(overwrite))
+        return {"project_file": project_file, "saved": True}
+    Save()
+    return {"saved": True}
+
+
+def update_project():
+    Update()
+    return {"updated": True, "project_info": get_project_info()}
+
+
+def create_steady_state_thermal_system(project_dir, project_name="steady_state_thermal", geometry_file="", refresh_model=False):
+    project_dir = os.path.abspath(os.path.expanduser(project_dir))
+    if not os.path.exists(project_dir):
+        os.makedirs(project_dir)
+    project_file = os.path.join(project_dir, project_name + ".wbpj")
+
+    Reset()
+    ClearMessages()
+    template = GetTemplate(TemplateName="Steady-State Thermal", Solver="ANSYS")
+    system = template.CreateSystem()
+
+    if geometry_file:
+        geometry_file = os.path.abspath(os.path.expanduser(geometry_file))
+        geometry = system.GetContainer(ComponentName="Geometry")
+        geometry.SetFile(FilePath=geometry_file)
+
+    model = system.GetContainer(ComponentName="Model")
+    if refresh_model:
+        model.Refresh()
+
+    Save(FilePath=project_file, Overwrite=True)
+    return {"project_file": project_file, "project_info": get_project_info()}
+
+
+def create_thermal_bar_demo(project_dir):
+    project_dir = os.path.abspath(os.path.expanduser(project_dir))
+    if not os.path.exists(project_dir):
+        os.makedirs(project_dir)
+
+    input_file = os.path.join(project_dir, "thermal_bar.dat")
+    result_file = os.path.join(project_dir, "thermal_nodal_temperatures.txt")
+    project_file = os.path.join(project_dir, "thermal_bar_demo.wbpj")
+    result_no_ext = os.path.splitext(result_file)[0].replace("\\", "/")
+
+    apdl = """/TITLE,Workbench MCP thermal bar demo
+/PREP7
+ET,1,SOLID70
+MP,KXX,1,45
+BLOCK,0,0.1,0,0.02,0,0.02
+ESIZE,0.005
+VMESH,ALL
+FINISH
+
+/SOLU
+ANTYPE,STATIC
+NSEL,S,LOC,X,0
+D,ALL,TEMP,100
+NSEL,S,LOC,X,0.1
+D,ALL,TEMP,20
+ALLSEL,ALL
+SOLVE
+FINISH
+
+/POST1
+SET,LAST
+ALLSEL,ALL
+/OUTPUT,'%s',txt
+PRNSOL,TEMP
+/OUTPUT
+FINISH
+""" % result_no_ext
+
+    with io.open(input_file, "w", encoding="utf-8") as f:
+        f.write(apdl)
+
+    Reset()
+    ClearMessages()
+    template = GetTemplate(TemplateName="Mechanical APDL")
+    system = template.CreateSystem()
+    setup = system.GetContainer(ComponentName="Setup")
+    setup.AddInputFile(FilePath=input_file)
+    Save(FilePath=project_file, Overwrite=True)
+    Update()
+    Save(FilePath=project_file, Overwrite=True)
+
+    temps = []
+    if os.path.exists(result_file):
+        with io.open(result_file, "r", encoding="utf-8", errors="replace") as f:
+            for line in f:
+                parts = line.split()
+                if len(parts) == 2 and parts[0].isdigit():
+                    try:
+                        temps.append(float(parts[1]))
+                    except Exception:
+                        pass
+
+    return {
+        "project_file": project_file,
+        "input_file": input_file,
+        "result_file": result_file,
+        "node_count": len(temps),
+        "min_temperature": min(temps) if temps else None,
+        "max_temperature": max(temps) if temps else None,
+    }
+
+
+def handle_command(command):
+    cmd_id = command.get("id", uuid.uuid4().hex[:8])
+    cmd_type = command.get("type", "")
+    started = time.time()
+
+    try:
+        if cmd_type == "ping":
+            payload = {
+                "version": __version__,
+                "mcp_home": MCP_HOME,
+                "pid": os.getpid(),
+                "commands_processed": _mcp_commands_processed,
+            }
+            return {"id": cmd_id, "success": True, "data": payload, "timestamp": time.time()}
+        if cmd_type == "execute_script":
+            return execute_script(command.get("script", ""), cmd_id)
+        if cmd_type == "get_project_info":
+            return {"id": cmd_id, "success": True, "data": get_project_info(), "timestamp": time.time()}
+        if cmd_type == "open_project":
+            data = open_project(command.get("project_file", ""))
+            return {"id": cmd_id, "success": True, "data": data, "timestamp": time.time()}
+        if cmd_type == "save_project":
+            data = save_project(command.get("project_file", ""), command.get("overwrite", True))
+            return {"id": cmd_id, "success": True, "data": data, "timestamp": time.time()}
+        if cmd_type == "update_project":
+            data = update_project()
+            return {"id": cmd_id, "success": True, "data": data, "timestamp": time.time()}
+        if cmd_type == "create_steady_state_thermal_system":
+            data = create_steady_state_thermal_system(
+                command.get("project_dir", ""),
+                command.get("project_name", "steady_state_thermal"),
+                command.get("geometry_file", ""),
+                command.get("refresh_model", False),
+            )
+            return {"id": cmd_id, "success": True, "data": data, "timestamp": time.time()}
+        if cmd_type == "create_thermal_bar_demo":
+            data = create_thermal_bar_demo(command.get("project_dir", os.path.join(RUNS_DIR, "thermal_bar_demo_live")))
+            return {"id": cmd_id, "success": True, "data": data, "timestamp": time.time()}
+        if cmd_type == "stop":
+            return {"id": cmd_id, "success": True, "data": {"stopping": True}, "timestamp": time.time()}
+        return {"id": cmd_id, "success": False, "error": "Unknown command type: " + cmd_type, "timestamp": time.time()}
+    except Exception as e:
+        return {
+            "id": cmd_id,
+            "success": False,
+            "error": str(e),
+            "traceback": traceback.format_exc(),
+            "elapsed_seconds": round(time.time() - started, 3),
+            "timestamp": time.time(),
+        }
+
+
+def poll_once():
+    global _mcp_commands_processed
+    ensure_dirs()
+    processed = 0
+    try:
+        names = sorted(os.listdir(COMMANDS_DIR))
+    except Exception:
+        return 0
+
+    for name in names:
+        if not name.startswith("cmd_") or not name.endswith(".json"):
+            continue
+        command_path = os.path.join(COMMANDS_DIR, name)
+        try:
+            command = _read_json(command_path)
+        except Exception as e:
+            _log("ERROR", "Failed to read command " + name + ": " + str(e))
+            continue
+
+        cmd_id = command.get("id", name[4:-5])
+        result_path = os.path.join(RESULTS_DIR, cmd_id + ".json")
+        result = handle_command(command)
+        try:
+            _write_json(result_path, result)
+        except Exception as e:
+            _log("ERROR", "Failed to write result " + cmd_id + ": " + str(e))
+
+        try:
+            os.remove(command_path)
+        except Exception:
+            pass
+
+        processed += 1
+        _mcp_commands_processed += 1
+        if command.get("type") == "stop":
+            try:
+                with io.open(STOP_FILE, "w", encoding="utf-8") as f:
+                    f.write("stop")
+            except Exception:
+                pass
+    return processed
+
+
+def mcp_stop():
+    try:
+        with io.open(STOP_FILE, "w", encoding="utf-8") as f:
+            f.write("stop")
+    except Exception:
+        pass
+    write_status("stopped", "Stop requested")
+    print("Workbench MCP: stop requested")
+
+
+def mcp_status():
+    print("")
+    print("=" * 60)
+    print("Ansys Workbench MCP Bridge v" + __version__)
+    print("=" * 60)
+    print("Home:         " + MCP_HOME)
+    print("Commands dir: " + COMMANDS_DIR)
+    print("Results dir:  " + RESULTS_DIR)
+    print("Processed:    " + str(_mcp_commands_processed))
+    if _mcp_start_time:
+        print("Uptime:       " + str(int(time.time() - _mcp_start_time)) + "s")
+    print("")
+    print("Commands:")
+    print("  mcp_loop()    - Start blocking file-IPC loop")
+    print("  poll_once()   - Process one command batch")
+    print("  mcp_stop()    - Stop loop")
+    print("  mcp_status()  - Show this status")
+    print("=" * 60)
+
+
+def mcp_loop(sleep_interval=0.1):
+    global _mcp_running, _mcp_commands_processed, _mcp_start_time
+    ensure_dirs()
+    if os.path.exists(STOP_FILE):
+        try:
+            os.remove(STOP_FILE)
+        except Exception:
+            pass
+
+    _mcp_running = True
+    _mcp_commands_processed = 0
+    _mcp_start_time = time.time()
+    write_status("running", "Polling active")
+    _log("INFO", "Bridge loop started")
+    print("Workbench MCP: listening for commands in " + COMMANDS_DIR)
+
+    last_status_time = 0.0
+    cleanup_time = 0.0
+    try:
+        while True:
+            now = time.time()
+            if now - last_status_time >= 2.0:
+                write_status("running", "Polling active")
+                last_status_time = now
+            if now - cleanup_time >= 30.0:
+                _cleanup_stale_commands()
+                cleanup_time = now
+            if os.path.exists(STOP_FILE):
+                try:
+                    os.remove(STOP_FILE)
+                except Exception:
+                    pass
+                break
+            poll_once()
+            time.sleep(max(0.02, float(sleep_interval)))
+    except KeyboardInterrupt:
+        print("Workbench MCP: stopped by keyboard interrupt")
+    except Exception as e:
+        _log("ERROR", "mcp_loop: " + str(e))
+        _log("ERROR", traceback.format_exc())
+    _mcp_running = False
+    write_status("stopped", "Polling stopped")
+    _log("INFO", "Bridge loop stopped")
+    print("Workbench MCP: loop stopped")
+
+
+ensure_dirs()
+write_status("ready", "Bridge journal loaded")
+print("")
+print("=" * 60)
+print("Ansys Workbench MCP Bridge v" + __version__)
+print("=" * 60)
+print("Home: " + MCP_HOME)
+print("Start: mcp_loop()")
+print("Stop:  mcp_stop()")
+print("=" * 60)
+
+mcp_loop()

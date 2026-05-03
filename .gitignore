@@ -1,4 +1,27 @@
-.venv/
+# Runtime files
+status.json
+status.json.tmp
+stop.flag
+mcp.log
+
+# Command and result files
+commands/*.json
+results/*.json
+scripts/*.wbjn
+scripts/*.py
+runs/
+
+# Python cache
 __pycache__/
 *.pyc
-runs/
+*.pyo
+
+# Virtual environment
+.venv/
+
+# IDE
+.vscode/
+.idea/
+
+# Backup files
+*.bak
