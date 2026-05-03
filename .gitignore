@@ -5,6 +5,7 @@ __pycache__/
 
 # Virtual environment
 .venv/
+.venu/
 
 # IDE
 .vscode/
