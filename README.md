@@ -1,6 +1,6 @@
 # Ansys Workbench MCP
 
-这是一个用于 Codex / MCP 客户端的 Ansys Workbench 本地桥接项目。它参考了 Abaqus MCP 的文件队列 IPC 思路：MCP server 写入命令文件，Workbench 侧 bridge journal 轮询命令并写回结果。
+这是一个用于 Codex / MCP 客户端的 Ansys Workbench 本地桥接项目。它参考了队列 IPC 思路：MCP server 写入命令文件，Workbench 侧 bridge journal 轮询命令并写回结果。
 
 它不是 Ansys 官方项目，也不是通过鼠标点击 Workbench 界面。它封装的是 Ansys 已支持的自动化入口：
 
