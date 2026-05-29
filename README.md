@@ -1,22 +1,92 @@
 # Ansys Workbench MCP
 
-这个项目用于把 Codex 连接到本机 Ansys Workbench，让 Codex 可以通过 MCP 工具启动 Workbench bridge、创建分析系统、运行 Workbench journal、运行 MAPDL、运行 Fluent journal 和 CFX solver。
+一个用于连接 **Codex / MCP 客户端** 和 **Ansys Workbench** 的本地桥接项目。它通过文件队列 IPC 让外部 AI 助手向 Workbench 发送命令，并由 Workbench 侧 journal 执行脚本、创建系统、保存项目和返回结果。
 
-它不是 Ansys 官方项目，也不是鼠标点击自动化。它封装的是 Ansys 已支持的脚本和批处理入口。
+本项目不是 Ansys 官方项目，也不通过鼠标点击 GUI。它封装的是 Ansys 已支持的自动化入口：Workbench journal、Workbench scripting、MAPDL batch、Fluent journal 和 CFX solver batch。
 
-## 快速开始
+## 最新更新
 
-### 1. 准备环境
+- **通用 Workbench 分析系统创建**：通过 `create_workbench_analysis_system_live` 创建指定模板的分析系统
+- **分析模板探测**：通过 `probe_workbench_analysis_templates_live` 检查当前 Ansys 安装中可用的 Workbench 模板
+- **热分析封装**：支持稳态热和瞬态热系统创建
+- **结构和动力学封装**：支持静力、瞬态结构、模态、谐响应、响应谱、随机振动系统创建
+- **CFX 封装**：支持 Workbench CFX 系统创建，也支持直接运行 CFX `.def`
+- **Fluent 封装**：支持直接运行 Fluent journal；如果本机 Workbench 有 Fluent 模板，也可以用模板名覆盖方式创建系统
+- **安装检查增强**：`check_ansys_installation` 会同时检查 Workbench、Mechanical、MAPDL、Fluent、CFX 路径
+- **README 重构**：按安装、连接、使用、工具、协议和排错的顺序组织
 
-需要先安装：
+## 架构
 
-- Windows
-- Ansys Workbench，当前项目默认按 Ansys 2025 R1 路径配置
-- Python 3.13 或其他可创建虚拟环境的 Python
-- Codex，支持 MCP server 配置
-- Git，或直接从 GitHub 下载 ZIP
+```text
++--------------+     MCP stdio      +---------------+      file IPC       +--------------------+
+| MCP Client   |  ----------------> | mcp_server.py |  ----------------> | Ansys Workbench    |
+| Codex        |  <---------------- | FastMCP       |  <---------------- | bridge journal     |
++--------------+                    +---------------+                     +--------------------+
+                                           |
+                                           v
+                                  commands/*.json  ->  Workbench reads
+                                  results/*.json   <-  Workbench writes
+                                  status.json      <-  bridge heartbeat
+```
 
-默认 Ansys 路径：
+Workbench 侧由 `ansys_workbench_bridge.wbjn` 轮询 `commands/` 目录。MCP server 写入命令文件，Workbench 执行后把结果写入 `results/`，Codex 再读取结果并返回给用户。
+
+## 功能
+
+- 检查本机 Ansys Workbench、Mechanical、MAPDL、Fluent、CFX 路径
+- 启动、停止和检查 Workbench bridge
+- 在正在运行的 Workbench 会话中执行脚本
+- 读取当前 Workbench 项目的系统和组件信息
+- 打开、保存、更新 Workbench 项目
+- 探测 Workbench 分析模板
+- 创建 Workbench 分析系统
+- 创建稳态热、瞬态热、静力、瞬态结构、模态、谐响应、响应谱、随机振动、CFX 系统
+- 尝试创建 Fluent Workbench 系统
+- 直接运行任意 Workbench journal
+- 直接运行 MAPDL 输入文件
+- 直接运行 Fluent journal
+- 直接运行 CFX solver input
+- 创建并求解一个简单稳态热示例
+
+## 安装
+
+### 1. 克隆项目
+
+推荐安装到 `D:\ansys-workbench-mcp`：
+
+```powershell
+cd D:\
+git clone https://github.com/hongwenwang36-eng/ANSYS-Workbench-mcp.git ansys-workbench-mcp
+cd D:\ansys-workbench-mcp
+```
+
+也可以在 GitHub 页面下载 ZIP，然后解压到：
+
+```text
+D:\ansys-workbench-mcp
+```
+
+### 2. 安装 Python 依赖
+
+推荐使用虚拟环境：
+
+```powershell
+cd D:\ansys-workbench-mcp
+py -3.13 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+```
+
+如果没有 Python 3.13，先查看本机 Python：
+
+```powershell
+py -0p
+```
+
+然后把 `py -3.13` 换成实际版本，例如 `py -3.11`。
+
+### 3. 确认 Ansys 路径
+
+默认按 Ansys 2025 R1 配置：
 
 ```text
 Workbench:  D:\Program Files\ANSYS Inc\v251\Framework\bin\Win64\RunWB2.exe
@@ -27,39 +97,7 @@ CFX solve:  D:\Program Files\ANSYS Inc\v251\CFX\bin\cfx5solve.exe
 CFX pre:    D:\Program Files\ANSYS Inc\v251\CFX\bin\cfx5pre.exe
 ```
 
-如果你的 Ansys 不是这个路径，后面可以通过环境变量覆盖。
-
-### 2. 下载项目
-
-推荐放在 `D:\ansys-workbench-mcp`：
-
-```powershell
-cd D:\
-git clone https://github.com/hongwenwang36-eng/ANSYS-Workbench-mcp.git ansys-workbench-mcp
-cd D:\ansys-workbench-mcp
-```
-
-也可以在 GitHub 页面下载 ZIP，解压到：
-
-```text
-D:\ansys-workbench-mcp
-```
-
-### 3. 安装 Python 依赖
-
-```powershell
-cd D:\ansys-workbench-mcp
-py -3.13 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-```
-
-如果你的机器没有 Python 3.13，可以先查看可用版本：
-
-```powershell
-py -0p
-```
-
-然后把 `py -3.13` 换成你的版本，例如 `py -3.11`。
+如果你的安装路径不同，后续在 Codex MCP 配置里改对应环境变量。
 
 ### 4. 配置 Codex MCP
 
@@ -69,7 +107,7 @@ py -0p
 %USERPROFILE%\.codex\config.toml
 ```
 
-加入下面配置：
+加入：
 
 ```toml
 [mcp_servers.ansys-workbench]
@@ -90,165 +128,140 @@ ANSYS_CFX_SOLVE = 'D:\Program Files\ANSYS Inc\v251\CFX\bin\cfx5solve.exe'
 ANSYS_CFX_PRE = 'D:\Program Files\ANSYS Inc\v251\CFX\bin\cfx5pre.exe'
 ```
 
-如果 Ansys 或项目安装路径不同，改成你本机的实际路径。
+修改后重启 Codex，让 MCP server 重新加载。
 
-修改配置后，重启 Codex，让 MCP server 重新加载。
+## 使用
 
-### 5. 在 Codex 中验证连接
+### 检查安装
 
-重启 Codex 后，可以让 Codex 调用这些 MCP 工具。
-
-先检查路径：
+在 Codex 中调用：
 
 ```text
 check_ansys_installation
 ```
 
-启动 Workbench bridge：
+该工具会检查 Workbench、Mechanical、MAPDL、Fluent、CFX 和 bridge journal 是否存在。
+
+### 启动 Workbench bridge
+
+在 Codex 中调用：
 
 ```text
 start_workbench_bridge
 ```
 
-检查 Workbench bridge 是否在线：
+它会用 `RunWB2.exe` 加载：
+
+```text
+D:\ansys-workbench-mcp\ansys_workbench_bridge.wbjn
+```
+
+然后 Workbench bridge 开始轮询 `commands/`。
+
+### 检查连接状态
 
 ```text
 check_workbench_connection
 ```
 
-探测当前 Workbench 可用的分析模板：
+如果连接正常，会返回 Workbench bridge 版本、状态、PID 和命令计数。
+
+### 手动加载 bridge
+
+也可以先打开 Workbench，然后手动运行：
 
 ```text
-probe_workbench_analysis_templates_live
+File -> Run Script... -> D:\ansys-workbench-mcp\ansys_workbench_bridge.wbjn
 ```
 
-如果这些命令正常返回，就说明 Codex 已经通过本项目连接到 Ansys Workbench。
+该 journal 会进入 `mcp_loop()` 并监听 MCP 命令。
 
-### 6. 基本使用方式
+### 停止 bridge
 
-创建一个稳态热分析系统：
-
-```text
-create_steady_state_thermal_system_live
-```
-
-创建一个通用 Workbench 分析系统：
-
-```text
-create_workbench_analysis_system_live
-```
-
-支持的 `analysis_type`：
-
-- `steady_state_thermal`
-- `transient_thermal`
-- `static_structural`
-- `transient_structural`
-- `modal`
-- `harmonic_response`
-- `response_spectrum`
-- `random_vibration`
-- `cfx`
-- `fluent`
-
-直接运行 Fluent journal：
-
-```text
-run_fluent_journal
-```
-
-直接运行 CFX solver input：
-
-```text
-run_cfx_solver
-```
-
-停止 Workbench bridge：
+方式一，在 Codex 中调用：
 
 ```text
 stop_workbench_bridge
 ```
 
-也可以在 PowerShell 里停止：
+方式二，在 PowerShell 中运行：
 
 ```powershell
 cd D:\ansys-workbench-mcp
 .\.venv\Scripts\python.exe .\stop_mcp.py
 ```
 
-### 7. 手动在 Workbench 中加载 bridge
+### 工作模式
 
-如果不想让 Codex 自动启动 bridge，也可以先打开 Workbench，然后手动运行：
+| 模式 | 是否需要 Workbench bridge | 适用场景 |
+| --- | --- | --- |
+| 常驻 bridge | 需要 | 在一个 Workbench 会话中持续创建系统、执行脚本、查询项目 |
+| 直接 Workbench batch | 不需要 | 一次性运行 `.wbjn` 或创建项目 |
+| MAPDL batch | 不需要 | 直接运行 APDL `.dat` 输入文件 |
+| Fluent journal | 不需要 | 直接运行 Fluent TUI/journal 自动化 |
+| CFX solver | 不需要 | 直接运行 CFX `.def` solver input |
 
-```text
-File -> Run Script... -> D:\ansys-workbench-mcp\ansys_workbench_bridge.wbjn
-```
+## MCP 工具
 
-该 journal 会进入 `mcp_loop()`，开始监听 MCP 命令。
+这些工具由 `mcp_server.py` 暴露给 Codex 或其他 MCP 客户端。
 
-## 项目介绍
+| 工具 | 说明 |
+| --- | --- |
+| `check_ansys_installation` | 检查 Ansys 可执行文件和 bridge journal 路径 |
+| `start_workbench_bridge` | 启动 Workbench bridge |
+| `stop_workbench_bridge` | 停止 Workbench bridge |
+| `check_workbench_connection` | 检查 Workbench bridge 是否在线并响应 |
+| `execute_workbench_script` | 在 Workbench bridge 会话内执行脚本 |
+| `get_project_info` | 获取当前 Workbench 项目系统和组件信息 |
+| `open_project` | 在 Workbench bridge 会话内打开 `.wbpj` |
+| `save_project` | 保存当前 Workbench 项目 |
+| `update_project` | 执行 Workbench `Update()` |
+| `probe_workbench_analysis_templates_live` | 探测当前 Workbench 可用分析模板 |
+| `create_workbench_analysis_system_live` | 在 bridge 会话中创建通用分析系统 |
+| `create_steady_state_thermal_system_live` | 创建稳态热系统 |
+| `create_transient_thermal_system_live` | 创建瞬态热系统 |
+| `create_static_structural_system_live` | 创建静力结构系统 |
+| `create_transient_structural_system_live` | 创建瞬态结构系统 |
+| `create_modal_analysis_system_live` | 创建模态分析系统 |
+| `create_harmonic_response_system_live` | 创建谐响应系统 |
+| `create_response_spectrum_system_live` | 创建响应谱系统 |
+| `create_random_vibration_system_live` | 创建随机振动系统 |
+| `create_cfx_flow_system_live` | 创建 CFX 流体系统 |
+| `create_fluent_flow_system_live` | 尝试创建 Fluent Workbench 系统 |
+| `create_thermal_bar_demo_live` | 通过 bridge 创建并求解稳态热示例 |
+| `run_workbench_journal` | 直接运行 Workbench journal |
+| `create_workbench_analysis_system` | 直接批处理创建 Workbench 分析系统 |
+| `create_steady_state_thermal_system` | 直接批处理创建稳态热系统 |
+| `run_mapdl_input` | 直接运行 MAPDL 输入文件 |
+| `run_fluent_journal` | 直接运行 Fluent journal |
+| `run_cfx_solver` | 直接运行 CFX solver input |
+| `create_and_run_thermal_bar_demo` | 直接批处理创建并求解稳态热示例 |
 
-本项目参考文件队列 IPC 思路：
+## MCP 资源
 
-- MCP server 写入 `commands/*.json`
-- Workbench 侧 `ansys_workbench_bridge.wbjn` 轮询命令
-- Workbench 执行命令后写回 `results/*.json`
-- `status.json` 暴露 bridge heartbeat
+| URI | 说明 |
+| --- | --- |
+| `ansys-workbench://status` | 当前 bridge 状态、PID、命令计数和时间戳 |
+| `ansys-workbench://installation` | 当前配置的 Ansys 可执行文件路径 |
 
-项目封装的 Ansys 自动化入口包括：
+## 分析系统类型
 
-- `RunWB2.exe -B -R <journal.wbjn>`：运行 Workbench journal
-- Workbench scripting：在 Workbench 会话中创建系统、保存、打开、更新项目
-- MAPDL batch：运行 Mechanical APDL 输入文件
-- Fluent batch：运行 Fluent journal
-- CFX solver batch：运行 CFX `.def` solver input
+`create_workbench_analysis_system_live` 和 `create_workbench_analysis_system` 支持：
 
-## 架构
+| `analysis_type` | Workbench 模板 |
+| --- | --- |
+| `steady_state_thermal` | `Steady-State Thermal` |
+| `transient_thermal` | `Transient Thermal` |
+| `static_structural` | `Static Structural` |
+| `transient_structural` | `Transient Structural` |
+| `modal` | `Modal` |
+| `harmonic_response` | `Harmonic Response` |
+| `response_spectrum` | `Response Spectrum` |
+| `random_vibration` | `Random Vibration` |
+| `cfx` | `Fluid Flow (CFX)` 或 `CFX` |
+| `fluent` | `Fluid Flow (Fluent)` 或 `Fluent`，取决于本机 Workbench 模板是否可用 |
 
-```text
-MCP Client / Codex
-        |
-        | MCP stdio
-        v
-mcp_server.py
-        |
-        | file IPC
-        v
-commands/*.json  --->  ansys_workbench_bridge.wbjn  --->  Workbench
-results/*.json   <---  ansys_workbench_bridge.wbjn  <---  Workbench
-status.json      <---  bridge heartbeat
-```
-
-## 当前能力
-
-### 常驻 bridge 模式
-
-这一模式最接近 Abaqus MCP：
-
-- 启动 Workbench bridge。
-- 检查 Workbench bridge 是否在线。
-- 在 Workbench 会话内执行脚本。
-- 查询当前项目系统和组件信息。
-- 打开 Workbench 项目。
-- 保存 Workbench 项目。
-- 更新 Workbench 项目。
-- 探测 Workbench 分析模板。
-- 创建 Workbench 分析系统。
-- 创建稳态热、瞬态热、静力、瞬态结构、模态、谐响应、响应谱、随机振动、CFX 分析系统。
-- 尝试创建 Fluent Workbench 分析系统。
-- 创建并求解一个简单稳态热长方体示例。
-
-### 直接批处理模式
-
-不启动常驻 bridge，也能执行：
-
-- 运行任意 Workbench journal。
-- 创建 Workbench 分析系统。
-- 创建 Workbench `Steady-State Thermal` 项目。
-- 运行 MAPDL 输入文件。
-- 运行 Fluent journal。
-- 运行 CFX solver input。
-- 创建并求解一个简单稳态热示例。
+如果本机模板名不同，可以用 `template_name` 和 `solver` 参数覆盖。
 
 ## Fluent 和 CFX 说明
 
@@ -264,106 +277,113 @@ status.json      <---  bridge heartbeat
 - Fluent 推荐先通过 `run_fluent_journal` 运行 journal/TUI 自动化
 - 如果你的 Workbench 安装中 Fluent 模板名不同，可以用 `create_workbench_analysis_system_live` 的 `template_name` 参数覆盖
 
-## 文件结构
+## 文件 IPC 协议
 
-```text
-ansys-workbench-mcp/
-  mcp_server.py                  # MCP server，负责 stdio 工具和文件 IPC
-  ansys_workbench_bridge.wbjn    # Workbench 侧 bridge journal
-  stop_mcp.py                    # 从外部停止 bridge
-  .mcp.json                      # MCP 客户端示例配置
-  requirements.txt               # Python 依赖
-  README.md
+MCP server 会向 `commands/` 写入 JSON 命令文件：
+
+```python
+import json
+import time
+from pathlib import Path
+
+command = {
+    "id": "my_command",
+    "type": "execute_script",
+    "script": "print('Hello from Workbench')",
+    "timestamp": time.time(),
+}
+
+cmd_path = Path(r"D:\ansys-workbench-mcp\commands\cmd_my_command.json")
+cmd_path.write_text(json.dumps(command, indent=2), encoding="utf-8")
 ```
 
-运行时会生成：
+Workbench bridge 执行后，会把结果写入：
 
 ```text
-commands/       # MCP server 写入命令
-results/        # Workbench bridge 写回结果
-scripts/        # 临时脚本
-runs/           # 示例工程和求解输出
-status.json     # bridge 状态
-mcp.log         # bridge 日志
-stop.flag       # 停止信号
+D:\ansys-workbench-mcp\results\my_command.json
 ```
 
-`mcp.log`、`status.json`、`commands/`、`results/`、`scripts/`、`runs/` 都是运行状态或示例输出相关内容，不是 MCP server 的核心代码。
+### 命令类型
 
-## MCP 工具
+| type | 参数 | 说明 |
+| --- | --- | --- |
+| `ping` | 无 | 测试 bridge 是否在线 |
+| `execute_script` | `script` | 在 Workbench 会话内执行脚本 |
+| `get_project_info` | 无 | 获取项目系统和组件信息 |
+| `open_project` | `project_file` | 打开 Workbench 项目 |
+| `save_project` | `project_file`, `overwrite` | 保存项目 |
+| `update_project` | 无 | 执行 `Update()` |
+| `probe_analysis_templates` | `analysis_templates` | 探测模板是否存在 |
+| `create_analysis_system` | `project_dir`, `project_name`, `template_candidates` 等 | 创建 Workbench 分析系统 |
+| `create_steady_state_thermal_system` | `project_dir`, `project_name`, `geometry_file` | 创建稳态热系统 |
+| `create_thermal_bar_demo` | `project_dir` | 创建并求解稳态热示例 |
+| `stop` | 无 | 请求 bridge 停止 |
 
-### 连接和状态
+## 目录结构
 
-- `check_ansys_installation`
-- `start_workbench_bridge`
-- `stop_workbench_bridge`
-- `check_workbench_connection`
-- `ansys-workbench://status`
-- `ansys-workbench://installation`
+```text
+D:\ansys-workbench-mcp\
+├── mcp_server.py                  # MCP server，运行在 Codex 外部进程中
+├── ansys_workbench_bridge.wbjn    # Workbench 侧 bridge journal
+├── stop_mcp.py                    # 发送停止信号
+├── requirements.txt               # Python 依赖
+├── .mcp.json                      # MCP 客户端配置示例
+├── commands\                      # MCP server 写入命令
+├── results\                       # Workbench bridge 写回结果
+├── scripts\                       # bridge 执行临时脚本
+├── runs\                          # 示例工程和求解输出
+├── status.json                    # bridge heartbeat 状态
+├── mcp.log                        # bridge 日志
+└── stop.flag                      # 停止信号文件
+```
 
-### Workbench 会话内工具
+运行时目录和文件可能会随使用增加。`mcp.log` 和 `status.json` 是状态文件，不建议作为业务代码改动提交。
 
-- `execute_workbench_script`
-- `get_project_info`
-- `open_project`
-- `save_project`
-- `update_project`
-- `probe_workbench_analysis_templates_live`
-- `create_workbench_analysis_system_live`
-- `create_steady_state_thermal_system_live`
-- `create_transient_thermal_system_live`
-- `create_static_structural_system_live`
-- `create_transient_structural_system_live`
-- `create_modal_analysis_system_live`
-- `create_harmonic_response_system_live`
-- `create_response_spectrum_system_live`
-- `create_random_vibration_system_live`
-- `create_cfx_flow_system_live`
-- `create_fluent_flow_system_live`
-- `create_thermal_bar_demo_live`
+## 故障排查
 
-### 直接批处理工具
+- **Codex 看不到工具**
+  - 检查 `%USERPROFILE%\.codex\config.toml` 是否配置了 `mcp_servers.ansys-workbench`
+  - 确认 `command` 指向 `.venv\Scripts\python.exe`
+  - 重启 Codex
 
-- `run_workbench_journal`
-- `create_workbench_analysis_system`
-- `create_steady_state_thermal_system`
-- `run_mapdl_input`
-- `run_fluent_journal`
-- `run_cfx_solver`
-- `create_and_run_thermal_bar_demo`
+- **`check_ansys_installation` 显示路径不存在**
+  - 检查 Ansys 实际安装路径
+  - 修改 `ANSYS_RUNWB2`、`ANSYS_MECHANICAL`、`ANSYS_MAPDL`、`ANSYS_FLUENT`、`ANSYS_CFX_SOLVE`、`ANSYS_CFX_PRE`
 
-## 与 Abaqus MCP 的差异
+- **bridge 状态是 running 但命令超时**
+  - 调用 `stop_workbench_bridge`
+  - 再调用 `start_workbench_bridge`
+  - 查看 `D:\ansys-workbench-mcp\status.json` 的时间戳是否更新
+  - 查看 `D:\ansys-workbench-mcp\mcp.log`
 
-Abaqus MCP 可以通过 Abaqus/CAE 插件菜单和 Abaqus Python 环境长时间保持 GUI 会话内通信。Workbench 这边没有同等成熟的公开插件模板，所以本项目使用 Workbench journal 作为 bridge。
+- **Workbench 启动了但没有响应**
+  - 手动在 Workbench 中运行 `File -> Run Script... -> ansys_workbench_bridge.wbjn`
+  - 确认没有旧的 `stop.flag`
+  - 确认 `ANSYS_WORKBENCH_MCP_HOME` 指向项目目录
 
-这意味着：
+- **Fluent Workbench 模板找不到**
+  - 先使用 `run_fluent_journal`
+  - 或调用 `probe_workbench_analysis_templates_live` 查看本机模板名
+  - 如果知道实际模板名，用 `template_name` 参数覆盖
 
-- 能实现类似的文件 IPC 和会话内脚本执行。
-- 可以控制 Workbench 项目原理图、系统创建、保存、更新等。
-- Mechanical 细粒度树对象操作还需要继续扩展 Mechanical 脚本接口。
-- 复杂 GUI 交互不通过鼠标模拟完成，而应继续封装为脚本工具。
+- **直接批处理运行时间很长**
+  - 增大工具的 `timeout_seconds`
+  - 对 Fluent/CFX/MAPDL 先用小模型验证 journal 或输入文件
 
 ## 已验证
 
 在本机已经验证：
 
-- MCP stdio 可以列出工具。
-- Ansys 2025 R1 路径检查正常。
-- `start_workbench_bridge` 可以启动 Workbench bridge，并通过 `ping` 响应。
-- `execute_workbench_script` 可以在 Workbench 会话内执行脚本并返回输出。
-- `get_project_info` 可以读取当前 Workbench 项目系统信息。
-- `probe_workbench_analysis_templates_live` 可以探测 Workbench 分析模板。
-- `create_workbench_analysis_system_live` 可以创建热、结构、动力学和 CFX 分析系统。
-- `create_steady_state_thermal_system_live` 可以通过 bridge 创建真实 Workbench 稳态热项目。
-- `create_thermal_bar_demo_live` 可以通过 bridge 完成简单稳态热求解，结果为 525 个节点，温度范围 20 到 100。
-- `run_fluent_journal` 可以定位 Fluent 可执行文件并执行 journal。
-- `run_cfx_solver` 可以定位 CFX solver 可执行文件并运行 `.def`。
-- 直接批处理模式可以创建真实 Workbench `Steady-State Thermal` 项目。
-- 直接批处理模式可以完成简单稳态热求解并导出节点温度。
+- MCP stdio 可以列出工具
+- Ansys 2025 R1 路径检查正常
+- Workbench bridge 可以启动并通过 ping 响应
+- Workbench 会话内脚本可以执行并返回输出
+- 可探测 Workbench 分析模板
+- 可创建稳态热、瞬态热、静力、瞬态结构、模态、谐响应、响应谱、随机振动和 CFX 系统
+- Fluent 可执行文件存在，推荐通过 journal/TUI 自动化
+- CFX solver 可执行文件存在，可通过 `.def` 直接运行
+- 稳态热 demo 可以创建并求解
 
-## 后续计划
+## 许可证
 
-- 增加 Mechanical 脚本执行入口。
-- 增加导入几何、设置材料、生成网格、施加载荷、施加温度和对流边界条件的高级工具。
-- 增加结果图片、温度极值、应力极值、节点和单元表格导出。
-- 增加更多 Workbench、Mechanical、Fluent、CFX 示例脚本。
+当前仓库未包含单独的 `LICENSE` 文件。公开发布前建议补充许可证文件，并在此处写明项目许可证。
