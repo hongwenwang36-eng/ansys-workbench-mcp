@@ -386,4 +386,4 @@ D:\ansys-workbench-mcp\
 
 ## 许可证
 
-当前仓库未包含单独的 `LICENSE` 文件。公开发布前建议补充许可证文件，并在此处写明项目许可证。
+本项目使用 MIT License，详见 [LICENSE](LICENSE)。
