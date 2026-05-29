@@ -194,15 +194,46 @@ cd D:\ansys-workbench-mcp
 - `open_project`
 - `save_project`
 - `update_project`
+- `probe_workbench_analysis_templates_live`
+- `create_workbench_analysis_system_live`
 - `create_steady_state_thermal_system_live`
+- `create_transient_thermal_system_live`
+- `create_static_structural_system_live`
+- `create_transient_structural_system_live`
+- `create_modal_analysis_system_live`
+- `create_harmonic_response_system_live`
+- `create_response_spectrum_system_live`
+- `create_random_vibration_system_live`
+- `create_cfx_flow_system_live`
+- `create_fluent_flow_system_live`
 - `create_thermal_bar_demo_live`
 
 ### 直接批处理工具
 
 - `run_workbench_journal`
+- `create_workbench_analysis_system`
 - `create_steady_state_thermal_system`
 - `run_mapdl_input`
+- `run_fluent_journal`
+- `run_cfx_solver`
 - `create_and_run_thermal_bar_demo`
+
+### Analysis wrappers added in v0.2.x
+
+The generic Workbench wrapper `create_workbench_analysis_system_live` accepts:
+
+- `steady_state_thermal`
+- `transient_thermal`
+- `static_structural`
+- `transient_structural`
+- `modal`
+- `harmonic_response`
+- `response_spectrum`
+- `random_vibration`
+- `cfx`
+- `fluent`
+
+`probe_workbench_analysis_templates_live` checks which Workbench templates are available in the current Ansys installation. On this workstation, Workbench templates are available for thermal, structural/dynamics, and CFX. Fluent is installed as `fluent.exe`, but the Workbench Fluent template was not found by the common template names, so Fluent automation is exposed through `run_fluent_journal`.
 
 ## 与 Abaqus MCP 的差异
 
