@@ -255,6 +255,89 @@ def update_project():
     return {"updated": True, "project_info": get_project_info()}
 
 
+def _resolve_template_candidates(candidates):
+    errors = []
+    for candidate in candidates:
+        name = _stringify(candidate.get("template_name", ""))
+        solver = _stringify(candidate.get("solver", ""))
+        try:
+            if solver:
+                return GetTemplate(TemplateName=name, Solver=solver), name, solver
+            return GetTemplate(TemplateName=name), name, solver
+        except Exception as e:
+            errors.append(name + "|" + solver + "|" + _stringify(e))
+    raise RuntimeError("No matching Workbench template. Tried: " + "; ".join(errors))
+
+
+def probe_analysis_templates(analysis_templates):
+    results = {}
+    for analysis_type in sorted(analysis_templates.keys()):
+        candidates = analysis_templates.get(analysis_type, [])
+        try:
+            template, used_name, used_solver = _resolve_template_candidates(candidates)
+            results[analysis_type] = {
+                "available": True,
+                "template_name": used_name,
+                "solver": used_solver,
+                "template": _stringify(template),
+            }
+        except Exception as e:
+            results[analysis_type] = {
+                "available": False,
+                "error": _stringify(e),
+                "candidates": candidates,
+            }
+    return {"templates": results}
+
+
+def create_analysis_system(
+    project_dir,
+    project_name,
+    analysis_type,
+    template_candidates,
+    geometry_file="",
+    refresh_model=False,
+    reset_project=True,
+):
+    project_dir = os.path.abspath(os.path.expanduser(project_dir))
+    if not os.path.exists(project_dir):
+        os.makedirs(project_dir)
+    if not project_name:
+        project_name = analysis_type or "workbench_analysis"
+    project_file = os.path.join(project_dir, project_name + ".wbpj")
+
+    if reset_project:
+        Reset()
+    ClearMessages()
+    template, used_name, used_solver = _resolve_template_candidates(template_candidates)
+    system = template.CreateSystem()
+
+    if geometry_file:
+        geometry_file = os.path.abspath(os.path.expanduser(geometry_file))
+        geometry = system.GetContainer(ComponentName="Geometry")
+        geometry.SetFile(FilePath=geometry_file)
+
+    model_refreshed = False
+    try:
+        model = system.GetContainer(ComponentName="Model")
+        if refresh_model:
+            model.Refresh()
+            model_refreshed = True
+    except Exception:
+        pass
+
+    Save(FilePath=project_file, Overwrite=True)
+    return {
+        "analysis_type": analysis_type,
+        "template_name": used_name,
+        "solver": used_solver,
+        "project_file": project_file,
+        "geometry_file": geometry_file,
+        "model_refreshed": model_refreshed,
+        "project_info": get_project_info(),
+    }
+
+
 def create_steady_state_thermal_system(project_dir, project_name="steady_state_thermal", geometry_file="", refresh_model=False):
     project_dir = os.path.abspath(os.path.expanduser(project_dir))
     if not os.path.exists(project_dir):
@@ -377,6 +460,20 @@ def handle_command(command):
             return {"id": cmd_id, "success": True, "data": data, "timestamp": time.time()}
         if cmd_type == "update_project":
             data = update_project()
+            return {"id": cmd_id, "success": True, "data": data, "timestamp": time.time()}
+        if cmd_type == "probe_analysis_templates":
+            data = probe_analysis_templates(command.get("analysis_templates", {}))
+            return {"id": cmd_id, "success": True, "data": data, "timestamp": time.time()}
+        if cmd_type == "create_analysis_system":
+            data = create_analysis_system(
+                command.get("project_dir", ""),
+                command.get("project_name", ""),
+                command.get("analysis_type", ""),
+                command.get("template_candidates", []),
+                command.get("geometry_file", ""),
+                command.get("refresh_model", False),
+                command.get("reset_project", True),
+            )
             return {"id": cmd_id, "success": True, "data": data, "timestamp": time.time()}
         if cmd_type == "create_steady_state_thermal_system":
             data = create_steady_state_thermal_system(
